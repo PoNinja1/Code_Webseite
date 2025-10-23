@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtualenv
+venv/
+env/
+ENV/
+.venv/
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+static/
+local_settings.py
+
+# IDEs / Tools
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests / Coverage
+.coverage
+htmlcov/
+.tox/
+pytest_cache/
+
+# Migrations (optional – nur ausblenden, wenn sie nicht versioniert werden sollen)
+# */migrations/__pycache__/
+# */migrations/*.py
