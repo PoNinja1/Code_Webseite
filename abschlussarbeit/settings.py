@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Eigene App(s)
-    'abschlussprojekt',
 ]
 
 MIDDLEWARE = [
