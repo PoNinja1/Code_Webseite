@@ -24,8 +24,9 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name="index"),
-    path('dataBase', views.dataBase, name="dataBase"),
-    path('XXX', views.XXX, name="XXX"),
+    path('analysis/', views.AnalysisView.as_view(), name="analysis"),
+    path('dataBase/', views.DataBaseView.as_view(), name="dataBase"),
+
     
     # Django Auth
     path('accounts/login', auth_views.LoginView.as_view(template_name="accounts/login.html"), name='login'),

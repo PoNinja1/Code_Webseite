@@ -1,10 +1,16 @@
 from django.shortcuts import render
+from django.views.generic.base import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def index(request):
     return render(request, 'index.html')
 
-def dataBase(request):
-    return render(request, 'dataBase.html')
+# Login required
+class DataBaseView(LoginRequiredMixin, TemplateView):
+    template_name = 'dataBase.html'
 
-def XXX(request):
-    return render(request, 'XXX.html')
+# Login required
+class AnalysisView(LoginRequiredMixin, TemplateView):
+    template_name = 'analysis.html'
+
+

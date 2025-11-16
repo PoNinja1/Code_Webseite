@@ -38,3 +38,7 @@ pytest_cache/
 # Migrations (optional – nur ausblenden, wenn sie nicht versioniert werden sollen)
 # */migrations/__pycache__/
 # */migrations/*.py
+
+
+# Home Rechner
+activation_venv.txt
