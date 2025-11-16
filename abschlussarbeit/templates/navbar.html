@@ -1,10 +1,17 @@
 <div>
     {% url 'index' as index_url %}
     <span>{% if request.path == index_url %}Home{% else %}<a href="{{ index_url }}">Home</a>{% endif %}</span>
+
     {% url 'dataBase' as dataBase_url %}
     <span>{% if request.path == dataBase_url %}Data Base{% else %}<a href="{{ dataBase_url }}">Data Base</a>{% endif%}</span>
+
     {% url 'analysis' as analysis_url %}
     <span>{% if request.path == analysis_url %}Analysis{% else %}<a href="{{ analysis_url }}">Analysis</a>{% endif %}</span>
+
+    {% if user.is_authenticated and user.is_staff %}
+        <span><a href="/admin/">Admin Panel</a></span>
+    {% endif %}
+
     <span style="float:right">
         {% if user.is_authenticated %}
         <span>Hi {{user.username}}!</span>

@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Eigene App(s)
+    # Eigene App
+    'device_overview'
 ]
 
 MIDDLEWARE = [
