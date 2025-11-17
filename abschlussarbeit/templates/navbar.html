@@ -2,14 +2,14 @@
 {% url 'dataBase' as dataBase_url %}
 {% url 'analysis' as analysis_url %}
 
-<nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
+<nav class="navbar navbar-expand-lg zf-bg-secondary text-uppercase fixed-top" id="mainNav">
     <div class="container">
 
         <!-- BRAND / HOME -->
         <a class="navbar-brand" href="{% url 'index' %}">Workplace Base Element</a>
 
         <!-- Mobile Button -->
-        <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" 
+        <button class="navbar-toggler text-uppercase font-weight-bold zf-bg-primary text-white  " 
                 type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" 
                 aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
             Menu <i class="fas fa-bars"></i>
@@ -21,7 +21,7 @@
 
                 <!-- Home -->
                 <li class="nav-item mx-0 mx-lg-1">
-                    <a class="nav-link py-3 px-0 px-lg-3 rounded 
+                    <a class="nav-link py-3 px-0 px-lg-3   
                         {% if request.path == index_url %}active{% endif %}"
                        href="{% url 'index' %}">
                         Home
@@ -30,7 +30,7 @@
 
                 <!-- Data Base -->
                 <li class="nav-item mx-0 mx-lg-1">
-                    <a class="nav-link py-3 px-0 px-lg-3 rounded 
+                    <a class="nav-link py-3 px-0 px-lg-3   
                         {% if request.path == dataBase_url %}active{% endif %}"
                        href="{% url 'dataBase' %}">
                         Data Base
@@ -39,7 +39,7 @@
 
                 <!-- Analysis -->
                 <li class="nav-item mx-0 mx-lg-1">
-                    <a class="nav-link py-3 px-0 px-lg-3 rounded 
+                    <a class="nav-link py-3 px-0 px-lg-3   
                         {% if request.path == analysis_url %}active{% endif %}"
                        href="{% url 'analysis' %}">
                         Analysis
@@ -49,7 +49,7 @@
                 <!-- Admin Panel (nur für Staff) -->
                 {% if user.is_authenticated and user.is_staff %}
                 <li class="nav-item mx-0 mx-lg-1">
-                    <a class="nav-link py-3 px-0 px-lg-3 rounded" href="/admin/">
+                    <a class="nav-link py-3 px-0 px-lg-3  " href="/admin/">
                         Admin Panel
                     </a>
                 </li>
@@ -57,24 +57,23 @@
 
                 <!-- Benutzer-Bereich rechts -->
                 {% if user.is_authenticated %}
-                <li class="nav-item mx-0 mx-lg-1 nav-link py-3 px-0 px-lg-3 rounded">
+                <li class="nav-item mx-0 mx-lg-1 nav-link py-3 px-0 px-lg-3  ">
                     Hi {{ user.username }}!
                 </li>
 
                 <li class="nav-item mx-0 mx-lg-1">
-                    <form method="post" action="{% url 'logout' %}">
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" 
-                                class="nav-link py-3 px-0 px-lg-3 rounded bg-transparent border-0 text-white"
-                                style="cursor:pointer;">
+                        <button type="submit" class="btn btn-danger nav-logout-btn">
                             Logout
                         </button>
                     </form>
                 </li>
 
+
                 {% else %}
                 <li class="nav-item mx-0 mx-lg-1">
-                    <a class="nav-link py-3 px-0 px-lg-3 rounded" href="{% url 'login' %}">
+                    <a class="nav-link py-3 px-0 px-lg-3  " href="{% url 'login' %}">
                         Login
                     </a>
                 </li>
