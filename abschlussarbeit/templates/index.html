@@ -12,7 +12,28 @@
         <!-- Masthead Heading-->
         <h1 class="masthead-heading text-uppercase mb-0">FIIB21 WorkPlace Base Element Tool</h1>
 </header>
-<h1>
-    Template Homepage
-</h1>
+
+<div class="container mt-5 mb-5">
+    {% if user.is_authenticated %}
+        <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <input type="file"
+                       name="csv_file"
+                       accept=".csv"
+                       class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                CSV hochladen
+            </button>
+        </form>
+    {% else %}
+        <h2 class="mb-3">Bitte loggen Sie sich ein</h2>
+        <a href="{% url 'login' %}" class="btn btn-primary">
+            Zum Login
+        </a>
+    {% endif %}
+</div>
+
 {% endblock %}
