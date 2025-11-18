@@ -337,9 +337,6 @@ class UploadCsvView(LoginRequiredMixin, View):
 
 
 class DataBaseView(LoginRequiredMixin, View):
-    """
-    Zeigt die normalisierte DB als 'flache' View (device_flat) an.
-    """
     login_url = "login"
 
     def get(self, request):
@@ -352,3 +349,8 @@ class DataBaseView(LoginRequiredMixin, View):
             "columns": columns,
             "rows": rows,
         })
+
+    def post(self, request):
+        # Button "Clear Database" klickt hier rein
+        _clear_all_tables()
+        return redirect("dataBase")
