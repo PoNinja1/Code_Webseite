@@ -77,11 +77,24 @@ WSGI_APPLICATION = 'abschlussarbeit.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': {   # bleibt wie bisher für Login & Django intern
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+
+    'device_db': {   # neue MariaDB-Verbindung
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'device_overview',
+        'USER': 'devapp',
+        'PASSWORD': 'admin',
+        'HOST': '10.206.170.92',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
+
 
 
 # Password validation
