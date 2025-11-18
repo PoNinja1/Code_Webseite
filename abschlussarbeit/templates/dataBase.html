@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5 mb-5">
-    <h2 class="mb-3">Komplette Geräte-Tabelle (devices)</h2>
+    <h2 class="mb-3">Geräteübersicht (device_flat)</h2>
 
     {% if rows %}
         <div class="table-responsive">
@@ -28,7 +28,7 @@
             </table>
         </div>
     {% else %}
-        <p>Keine Daten in der Tabelle <code>devices</code> gefunden.</p>
+        <p>Keine Daten vorhanden.</p>
     {% endif %}
 </div>
 {% endblock %}

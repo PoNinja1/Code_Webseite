@@ -21,14 +21,12 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
 
-    # Alle Seiten der App device_overview (Index, DataBase, Analysis, …)
-    path('', include('device_overview.urls')),
+    path("", include("device_overview.urls")),
 
-    # Django Auth
-    path('accounts/login/', auth_views.LoginView.as_view(
+    path("accounts/login/",  auth_views.LoginView.as_view(
         template_name="accounts/login.html"
-    ), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name="logout"),
+    ), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]
