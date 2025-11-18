@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}WorkPlace Base Element{% endblock %}
+
+{% block content %}
+<header class="masthead zf-bg-tertiary text-white text-center">
+    <div class="container d-flex align-items-center flex-column">
+        <!-- Masthead Avatar Image-->
+        <img class="masthead-avatar mb-5" src="{% static 'img/ZF_LOGOwhitepng.svg' %}" alt="ZF Logo" />
+        <!-- Masthead Heading-->
+        <h1 class="masthead-heading text-uppercase mb-0">FIIB21 WorkPlace Base Element Tool</h1>
+</header>
+
+<div class="container mt-5 mb-5">
+    {% if user.is_authenticated %}
+        <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <input type="file"
+                       name="csv_file"
+                       accept=".csv"
+                       class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                CSV hochladen
+            </button>
+        </form>
+    {% else %}
+        <h2 class="mb-3">Bitte loggen Sie sich ein</h2>
+        <a href="{% url 'login' %}" class="btn btn-primary">
+            Zum Login
+        </a>
+    {% endif %}
+</div>
+
+{% endblock %}

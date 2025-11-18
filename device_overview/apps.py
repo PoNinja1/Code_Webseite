@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AbschlussprojektConfig(AppConfig):
+class DeviceOverviewConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'abschlussprojekt'
+    name = 'device_overview'
