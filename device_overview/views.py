@@ -73,3 +73,59 @@ class DataBaseView(LoginRequiredMixin, TemplateView):
 
 class AnalysisView(LoginRequiredMixin, TemplateView):
     template_name = "analysis.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        conn = connections[DEVICE_ALIAS]
+
+        # Filter aus GET-Parametern
+        site = self.request.GET.get("site", "").strip()
+        pl_name = self.request.GET.get("pl_name", "").strip()
+        region = self.request.GET.get("region", "").strip()
+
+        # Dropdown-Liste für Sites vorbereiten
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT DISTINCT SITE
+                FROM device_flat
+                WHERE SITE IS NOT NULL AND SITE <> ''
+                ORDER BY SITE;
+            """)
+            site_choices = [row[0] for row in cur.fetchall()]
+
+        # Dynamisch WHERE bauen
+        conditions = []
+        params = []
+
+        if site:
+            conditions.append("SITE = %s")
+            params.append(site)
+
+        if pl_name:
+            # einfache LIKE-Suche
+            conditions.append("PL_NAME LIKE %s")
+            params.append(f"%{pl_name}%")
+
+        if region:
+            conditions.append("REGION = %s")
+            params.append(region)
+
+        base_sql = "SELECT * FROM device_flat"
+        if conditions:
+            base_sql += " WHERE " + " AND ".join(conditions)
+        base_sql += " LIMIT 1000"   # Safety-Limit
+
+        with conn.cursor() as cur:
+            cur.execute(base_sql, params)
+            rows = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+
+        ctx["columns"] = columns
+        ctx["rows"] = rows
+        ctx["site_choices"] = site_choices
+        ctx["current_site"] = site
+        ctx["current_pl_name"] = pl_name
+        ctx["current_region"] = region
+
+        return ctx
