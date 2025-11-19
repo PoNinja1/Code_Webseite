@@ -77,7 +77,7 @@ def _clear_all_tables():
 def _import_csv_to_staging(csv_file):
     """
     CSV (mit ;) in die Staging-Tabelle WKPBE_Test_kurz schreiben.
-    Spaltennamen müssen zur CSV passen (Header-Zeile!).
+    Spaltennamen müssen zur CSV passen.
     """
     data = csv_file.read().decode("utf-8-sig")
     f = io.StringIO(data)
@@ -243,75 +243,83 @@ def _populate_normalized_from_staging():
         """)
 
         # Devices
-        cur.execute("""
-        INSERT INTO devices (
-          serialnumber, shortdescription, destination_classid,
-          purchase_date, received_date, installation_date,
-          available_date, return_date, disposal_date,
-          mark_as_deleted, create_date, modified_date,
-          role, childname, confbuildnumber, buildnumber,
-          additional_information, supported,
-          pl_name_id, owner_id, supporter_id, user_id,
-          model_id, costcenter_id, supplier_id,
-          room_id, relation_id, department_id,
-          type_id, depot_id, pl_status_id, ci_status_id
-        )
-        SELECT
-          t.SERIALNUMBER,
-          t.SHORTDESCRIPTION,
-          t.DESTINATION_CLASSID,
-          t.PURCHASE_DATE,
-          t.RECEIVED_DATE,
-          t.INSTALLATION_DATE,
-          t.AVAILABLE_DATE,
-          t.RETURN_DATE,
-          t.DISPOSAL_DATE,
-          t.MARK_AS_DELETED,
-          t.CREATE_DATE,
-          t.MODIFIED_DATE,
-          t.ROLE,
-          t.CHILDNAME,
-          t.CONFBASICNUMBER,
-          t.BUILDNUMBER,
-          t.ADDITIONAL_INFORMATION,
-          t.SUPPORTED,
-          pn.pl_name_id,
-          ob.owner_id,
-          sb.supporter_id,
-          ub.user_id,
-          m.model_id,
-          cc.cc_id,
-          sup.supplier_id,
-          r.room_id,
-          rel.relation_id,
-          dept.department_id,
-          ty.type_id,
-          dp.depot_id,
-          pls.pl_status_id,
-          cis.ci_status_id
-        FROM WKPBE_Test_kurz t
-        LEFT JOIN pl_names       pn   ON pn.pl_name        = t.PL_NAME
-        LEFT JOIN owned_bys      ob   ON ob.owned_by       = t.OWNED_BY
-        LEFT JOIN supported_bys  sb   ON sb.supported_by   = t.SUPPORTED_BY
-        LEFT JOIN used_bys       ub   ON ub.used_by        = t.USED_BY
-        LEFT JOIN cost_centers   cc   ON cc.pl_cost_center = t.PL_COST_CENTER
-        LEFT JOIN suppliers      sup  ON sup.suppliername  = t.SUPPLIERNAME
-        LEFT JOIN departments    dept ON dept.department   = t.DEPARTMENT
-        LEFT JOIN rooms          r    ON r.room            = t.ROOM AND r.ci_room = t.CI_ROOM
-        LEFT JOIN relations      rel  ON rel.relation      = t.RELATION
-        LEFT JOIN types          ty   ON ty.type           = t.TYPE
-        LEFT JOIN depots         dp   ON dp.depot          = t.DEPOT
-        LEFT JOIN tblpl_status   pls  ON pls.pl_status     = t.PL_STATUS
-        LEFT JOIN tblci_status   cis  ON cis.ci_status     = t.CI_STATUS
-        LEFT JOIN manufacturers  man  ON man.manufacturername = t.MANUFACTURERNAME
-        LEFT JOIN tbltier1       t1   ON t1.tier1          = t.TIER1
-        LEFT JOIN tbltier2       t2   ON t2.tier2          = t.TIER2
-        LEFT JOIN tbltier3       t3   ON t3.tier3          = t.TIER3
-        LEFT JOIN models         m    ON m.model           = t.MODEL
-                                       AND m.manu_id       = man.manu_id
-                                       AND m.tier1_id      = t1.tier1_id
-                                       AND m.tier2_id      = t2.tier2_id
-                                       AND m.tier3_id      = t3.tier3_id;
+        cur.execute("""INSERT INTO devices (
+            serialnumber, shortdescription, destination_classid,
+            purchase_date, received_date, installation_date,
+            available_date, return_date, disposal_date,
+            mark_as_deleted, create_date, modified_date,
+            role, childname, confbuildnumber, buildnumber,
+            additional_information, supported,
+            pl_name_id, owner_id, supporter_id, user_id,
+            model_id, costcenter_id, supplier_id,
+            room_id, relation_id, department_id,
+            type_id, depot_id, pl_status_id, ci_status_id
+            )
+            SELECT
+            t.SERIALNUMBER,
+            t.SHORTDESCRIPTION,
+            t.DESTINATION_CLASSID,
+            t.PURCHASE_DATE,
+            t.RECEIVED_DATE,
+            t.INSTALLATION_DATE,
+            t.AVAILABLE_DATE,
+            t.RETURN_DATE,
+            t.DISPOSAL_DATE,
+            t.MARK_AS_DELETED,
+            t.CREATE_DATE,
+            t.MODIFIED_DATE,
+            t.ROLE,
+            t.CHILDNAME,
+            t.CONFBASICNUMBER,
+            t.BUILDNUMBER,
+            t.ADDITIONAL_INFORMATION,
+            t.SUPPORTED,
+            pn.pl_name_id,
+            ob.owner_id,
+            sb.supporter_id,
+            ub.user_id,
+            m.model_id,
+            cc.cc_id,
+            sup.supplier_id,
+
+            -- hier wichtig: r.room_id kann NULL bleiben
+            r.room_id,
+            rel.relation_id,
+            dept.department_id,
+            ty.type_id,
+            dp.depot_id,
+            pls.pl_status_id,
+            cis.ci_status_id
+            FROM WKPBE_Test_kurz t
+            LEFT JOIN pl_names       pn   ON pn.pl_name        = t.PL_NAME
+            LEFT JOIN owned_bys      ob   ON ob.owned_by       = t.OWNED_BY
+            LEFT JOIN supported_bys  sb   ON sb.supported_by   = t.SUPPORTED_BY
+            LEFT JOIN used_bys       ub   ON ub.used_by        = t.USED_BY
+            LEFT JOIN cost_centers   cc   ON cc.pl_cost_center = t.PL_COST_CENTER
+            LEFT JOIN suppliers      sup  ON sup.suppliername  = t.SUPPLIERNAME
+            LEFT JOIN departments    dept ON dept.department   = t.DEPARTMENT
+            LEFT JOIN relations      rel  ON rel.relation      = t.RELATION
+            LEFT JOIN types          ty   ON ty.type           = t.TYPE
+            LEFT JOIN depots         dp   ON dp.depot          = t.DEPOT
+            LEFT JOIN tblpl_status   pls  ON pls.pl_status     = t.PL_STATUS
+            LEFT JOIN tblci_status   cis  ON cis.ci_status     = t.CI_STATUS
+            LEFT JOIN manufacturers  man  ON man.manufacturername = t.MANUFACTURERNAME
+            LEFT JOIN tbltier1       t1   ON t1.tier1          = t.TIER1
+            LEFT JOIN tbltier2       t2   ON t2.tier2          = t.TIER2
+            LEFT JOIN tbltier3       t3   ON t3.tier3          = t.TIER3
+            LEFT JOIN models         m    ON m.model           = t.MODEL
+                                        AND m.manu_id       = man.manu_id
+                                        AND m.tier1_id      = t1.tier1_id
+                                        AND m.tier2_id      = t2.tier2_id
+                                        AND m.tier3_id      = t3.tier3_id
+            LEFT JOIN sites          s    ON s.site            = t.SITE
+            LEFT JOIN rooms          r    ON r.site_id         = s.site_id
+                                        AND (
+                                                (t.ROOM IS NOT NULL AND t.ROOM <> '' AND r.room = t.ROOM)
+                                            OR (t.ROOM IS NULL OR t.ROOM = '')
+                                            AND (t.CI_ROOM IS NOT NULL AND t.CI_ROOM <> '' AND r.ci_room = t.CI_ROOM)
+                                        );
+
         """)
 
 
