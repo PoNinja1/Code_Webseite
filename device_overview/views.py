@@ -80,7 +80,7 @@ class DataBaseView(TemplateView):
         return ctx
 
 
-class AnalysisView(LoginRequiredMixin,TemplateView):
+class AnalysisView(TemplateView):
     template_name = "analysis.html"
 
     def get_context_data(self, **kwargs):
