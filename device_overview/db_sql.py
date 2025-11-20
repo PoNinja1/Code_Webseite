@@ -67,11 +67,11 @@ def _conn():
 def clear_all_tables():
     """
     Leert alle fachlichen Tabellen + Staging, löscht aber nichts.
+    (1:1 Model–Partnumber, keine Zwischentabelle mehr.)
     """
     sql = """
     SET FOREIGN_KEY_CHECKS = 0;
     TRUNCATE TABLE devices;
-    TRUNCATE TABLE zwPartnumbersModels;
     TRUNCATE TABLE partnumbers;
     TRUNCATE TABLE models;
     TRUNCATE TABLE tbltier3;
@@ -147,12 +147,13 @@ def import_csv_to_staging(csv_file):
 def populate_normalized_from_staging():
     """
     Füllt die normalisierte Struktur aus WKPBE_Test_kurz.
-    Nutzt viele INSERT DISTINCT + Joins.
+    Variante mit 1:1 Model–Partnumber (models.partnumber_id als FK).
     """
     conn = _conn()
+
     with transaction.atomic(using=DEVICE_ALIAS):
         with conn.cursor() as cur:
-            # Regionen
+            # Regions
             cur.execute("""
                 INSERT INTO regions (region)
                 SELECT DISTINCT REGION
@@ -302,24 +303,7 @@ def populate_normalized_from_staging():
                 WHERE CI_STATUS IS NOT NULL AND CI_STATUS <> '';
             """)
 
-            # Models
-            cur.execute("""
-                INSERT INTO models (manu_id, tier1_id, tier2_id, tier3_id, model)
-                SELECT DISTINCT
-                    man.manu_id,
-                    t1.tier1_id,
-                    t2.tier2_id,
-                    t3.tier3_id,
-                    t.MODEL
-                FROM WKPBE_Test_kurz t
-                LEFT JOIN manufacturers man ON man.manufacturername = t.MANUFACTURERNAME
-                LEFT JOIN tbltier1 t1       ON t1.tier1 = t.TIER1
-                LEFT JOIN tbltier2 t2       ON t2.tier2 = t.TIER2
-                LEFT JOIN tbltier3 t3       ON t3.tier3 = t.TIER3
-                WHERE t.MODEL IS NOT NULL AND t.MODEL <> '';
-            """)
-
-            # Partnumbers + Zwischentabelle
+            # Partnumbers vor Models
             cur.execute("""
                 INSERT INTO partnumbers (partnumber)
                 SELECT DISTINCT PARTNUMBER
@@ -327,17 +311,26 @@ def populate_normalized_from_staging():
                 WHERE PARTNUMBER IS NOT NULL AND PARTNUMBER <> '';
             """)
 
+            # Models direkt mit partnumber_id
             cur.execute("""
-                INSERT INTO zwPartnumbersModels (partnumber_id, model_id)
+                INSERT INTO models (manu_id, tier1_id, tier2_id, tier3_id, model, partnumber_id)
                 SELECT DISTINCT
-                    p.partnumber_id,
-                    m.model_id
+                    man.manu_id,
+                    t1.tier1_id,
+                    t2.tier2_id,
+                    t3.tier3_id,
+                    t.MODEL,
+                    p.partnumber_id
                 FROM WKPBE_Test_kurz t
-                JOIN partnumbers p ON p.partnumber = t.PARTNUMBER
-                JOIN models m ON m.model = t.MODEL;
+                LEFT JOIN manufacturers man ON man.manufacturername = t.MANUFACTURERNAME
+                LEFT JOIN tbltier1       t1  ON t1.tier1 = t.TIER1
+                LEFT JOIN tbltier2       t2  ON t2.tier2 = t.TIER2
+                LEFT JOIN tbltier3       t3  ON t3.tier3 = t.TIER3
+                LEFT JOIN partnumbers    p   ON p.partnumber = t.PARTNUMBER
+                WHERE t.MODEL IS NOT NULL AND t.MODEL <> '';
             """)
 
-            # Devices
+            # Devices (Model -> Partnumber kommt über models.partnumber_id)
             cur.execute("""
                 INSERT INTO devices (
                   serialnumber, shortdescription, destination_classid,
@@ -406,21 +399,16 @@ def populate_normalized_from_staging():
                                                AND m.tier1_id      = t1.tier1_id
                                                AND m.tier2_id      = t2.tier2_id
                                                AND m.tier3_id      = t3.tier3_id
-                LEFT JOIN sites          s    ON s.site            = t.SITE
-                LEFT JOIN rooms          r    ON r.site_id         = s.site_id
-                                               AND (
-                                                    (t.ROOM IS NOT NULL AND t.ROOM <> '' AND r.room = t.ROOM)
-                                                 OR ((t.ROOM IS NULL OR t.ROOM = '')
-                                                     AND (t.CI_ROOM IS NOT NULL AND t.CI_ROOM <> '' AND r.ci_room = t.CI_ROOM))
-                                               );
+                LEFT JOIN sites          s    ON s.site = t.SITE
+                LEFT JOIN rooms          r    ON r.site_id = s.site_id
+                               AND IFNULL(r.room, '')    = IFNULL(t.ROOM, '')
+                               AND IFNULL(r.ci_room, '') = IFNULL(t.CI_ROOM, '');
             """)
 
 
 def recreate_device_flat_view():
     """
-    Hilfsfunktion: View device_flat neu anlegen.
-    Kannst du einmalig in der MariaDB-Konsole ausführen,
-    oder hier über Django aufrufen, wenn du willst.
+    View device_flat neu anlegen (1:1 Model–Partnumber, kein zwPartnumbersModels mehr).
     """
     sql = """
     DROP VIEW IF EXISTS device_flat;
@@ -486,12 +474,11 @@ def recreate_device_flat_view():
     LEFT JOIN types             tp   ON tp.type_id         = d.type_id
     LEFT JOIN depots            dp   ON dp.depot_id        = d.depot_id
     LEFT JOIN models            m    ON m.model_id         = d.model_id
+    LEFT JOIN partnumbers       pnbr ON pnbr.partnumber_id = m.partnumber_id
     LEFT JOIN manufacturers     manu ON manu.manu_id       = m.manu_id
     LEFT JOIN tbltier1          t1   ON t1.tier1_id        = m.tier1_id
     LEFT JOIN tbltier2          t2   ON t2.tier2_id        = m.tier2_id
     LEFT JOIN tbltier3          t3   ON t3.tier3_id        = m.tier3_id
-    LEFT JOIN zwPartnumbersModels zpm ON zpm.model_id      = m.model_id
-    LEFT JOIN partnumbers       pnbr ON pnbr.partnumber_id = zpm.partnumber_id
     LEFT JOIN suppliers         sup  ON sup.supplier_id    = d.supplier_id;
     """
     with _conn().cursor() as cur:
