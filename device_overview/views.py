@@ -9,6 +9,15 @@ from django.db import connections
 from .forms import CsvUploadForm
 from . import db_sql
 
+import json
+
+from .db_sql_analysis import (
+    fetch_device_rows,
+    fetch_filter_options,
+    fetch_counts_by_site,  # für Counts
+)
+
+
 DEVICE_ALIAS = "device_db"
 
 
@@ -22,7 +31,7 @@ class IndexView(TemplateView):
         return ctx
 
 
-class UploadCsvView(LoginRequiredMixin, View):
+class UploadCsvView(View):
     """
     CSV Upload von der Startseite.
     """
@@ -47,7 +56,7 @@ class UploadCsvView(LoginRequiredMixin, View):
         return redirect("dataBase")
 
 
-class DataBaseView(LoginRequiredMixin, TemplateView):
+class DataBaseView(TemplateView):
     """
     Zeigt device_flat; POST -> Clear Database.
     """
@@ -71,61 +80,44 @@ class DataBaseView(LoginRequiredMixin, TemplateView):
         return ctx
 
 
-class AnalysisView(LoginRequiredMixin, TemplateView):
+class AnalysisView(LoginRequiredMixin,TemplateView):
     template_name = "analysis.html"
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
-        conn = connections[DEVICE_ALIAS]
+        query = self.request.GET
 
-        # Filter aus GET-Parametern
-        site = self.request.GET.get("site", "").strip()
-        pl_name = self.request.GET.get("pl_name", "").strip()
-        region = self.request.GET.get("region", "").strip()
+        # DACH-Default nur beim ersten Aufruf
+        if query:
+            dach_only = query.get("dach_only") in ("1", "on")
+        else:
+            dach_only = True
 
-        # Dropdown-Liste für Sites vorbereiten
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT DISTINCT SITE
-                FROM device_flat
-                WHERE SITE IS NOT NULL AND SITE <> ''
-                ORDER BY SITE;
-            """)
-            site_choices = [row[0] for row in cur.fetchall()]
+        ci_status = query.get("ci_status") or None
+        tier3 = query.get("tier3") or None
+        search = query.get("search") or None
 
-        # Dynamisch WHERE bauen
-        conditions = []
-        params = []
+        filters = {
+            "dach_only": dach_only,
+            "ci_status": ci_status,
+            "tier3": tier3,
+            "search": search,
+        }
 
-        if site:
-            conditions.append("SITE = %s")
-            params.append(site)
+        # Daten aus der View device_flat (via db_sql_analysis)
+        columns, rows = fetch_device_rows(filters)
+        filter_options = fetch_filter_options()
+        counts_by_site = fetch_counts_by_site(filters)
 
-        if pl_name:
-            # einfache LIKE-Suche
-            conditions.append("PL_NAME LIKE %s")
-            params.append(f"%{pl_name}%")
-
-        if region:
-            conditions.append("REGION = %s")
-            params.append(region)
-
-        base_sql = "SELECT * FROM device_flat"
-        if conditions:
-            base_sql += " WHERE " + " AND ".join(conditions)
-        base_sql += " LIMIT 1000"   # Safety-Limit
-
-        with conn.cursor() as cur:
-            cur.execute(base_sql, params)
-            rows = cur.fetchall()
-            columns = [col[0] for col in cur.description]
-
-        ctx["columns"] = columns
-        ctx["rows"] = rows
-        ctx["site_choices"] = site_choices
-        ctx["current_site"] = site
-        ctx["current_pl_name"] = pl_name
-        ctx["current_region"] = region
-
-        return ctx
+        context.update(
+            {
+                "nav_active": "analysis",
+                "filters": filters,
+                "columns": columns,
+                "rows": rows,
+                "filter_options": filter_options,
+                "counts_by_site": counts_by_site,
+            }
+        )
+        return context
