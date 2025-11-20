@@ -16,10 +16,9 @@ Including another URLconf
 """
 # abschlussarbeit/urls.py
 
-# abschlussarbeit/urls.py
-
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views 
 
 from device_overview.views import IndexView
 
@@ -32,6 +31,11 @@ urlpatterns = [
     # Device-App
     path("", include("device_overview.urls")),
 
-    # Django-Auth (login/logout)
-    path("accounts/", include("django.contrib.auth.urls")),
+    # Django Auth mit eigenen Templates
+    path("accounts/login/",  auth_views.LoginView.as_view(
+        template_name="accounts/login.html"
+    ), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(
+        next_page="index"   # oder wo du nach Logout hin willst
+    ), name="logout"),
 ]

@@ -15,6 +15,9 @@
 </header>
 
 <div class="container mt-5 mb-5">
+
+    <!-- {# --- ALTER CODE MIT LOGIN / AUTH: bewusst auskommentiert, falls du es im Fazit als Erweiterung erwähnen willst --- #}
+    {#
     {% if user.is_authenticated %}
         <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
         <form method="post" action="{% url 'upload_csv' %}" enctype="multipart/form-data">
@@ -30,10 +33,26 @@
         </form>
     {% else %}
         <h2 class="mb-3">Bitte loggen Sie sich ein</h2>
-        <a href="{% url 'login' %}" class="btn btn-primary">
+        <a href="{% url 'login' %}" class="btn btn-zf mt-3">
             Zum Login
         </a>
     {% endif %}
+    #}
+
+    {# --- NEUES VERHALTEN: Upload immer sichtbar, ohne Login --- #} -->
+    <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
+    <form method="post" action="{% url 'upload_csv' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ upload_form.csv_file }}
+
+        {% if upload_form.errors %}
+        <div class="text-danger mt-2">
+            {{ upload_form.errors }}
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-zf mt-3">CSV hochladen</button>
+    </form>
+
 </div>
 
 {% endblock %}
