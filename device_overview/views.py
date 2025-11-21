@@ -8,6 +8,8 @@ from django.db import connections
 
 from .forms import CsvUploadForm
 from . import db_sql
+from . import db_sql_reports
+
 
 import json
 
@@ -121,3 +123,34 @@ class AnalysisView(TemplateView):
             }
         )
         return context
+
+
+class PredefinedReportsView(TemplateView):
+    """
+    Seite 'Pre defined Reports':
+
+    - Report 1: Vollständige device_flat-Daten mit vordefinierten Filtern
+    - Report 2: Gleiche Filter, aber Aggregation nach SITE (Anzahl Geräte)
+    """
+
+    template_name = "predefined_reports.html"
+
+    def get(self, request, *args, **kwargs):
+        report = request.GET.get("report")  # 'devices' oder 'counts'
+
+        columns = []
+        rows = []
+
+        if report == "devices":
+            columns, rows = db_sql_reports.fetch_dach_deployed_t3_devices()
+        elif report == "counts":
+            columns, rows = db_sql_reports.fetch_dach_deployed_t3_counts_by_site()
+
+        context = self.get_context_data(**kwargs)
+        context.update({
+            "nav_active": "predefined_reports",  # aktuell nur Info, Nav macht path-check
+            "report": report or "",
+            "columns": columns,
+            "rows": rows,
+        })
+        return self.render_to_response(context)

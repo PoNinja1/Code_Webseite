@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pre defined Reports{% endblock %}
+
+{% block content %}
+<section class="page-section" id="predefined-reports">
+    <div class="container">
+        <h2 class="text-center text-uppercase text-secondary mb-4">
+            Pre defined Reports
+        </h2>
+
+        <p class="mb-3">
+            Die folgenden Reports nutzen vordefinierte Filter:
+            <br>
+            <strong>DACH-Sites</strong>,
+            <strong>CI_STATUS = 'Deployed'</strong> und
+            <strong>Tier3 in
+                [Computer, Notebook, Notebook-Special, ThinClient, Workstation, Workstation-Mobile]
+            </strong>.
+        </p>
+
+        <!-- Buttons für Reports -->
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <form method="get" class="d-inline">
+                <input type="hidden" name="report" value="devices">
+                <button type="submit"
+                        class="btn btn-zf-primary {% if report == 'devices' %}active{% endif %}">
+                    Report 1: Geräteliste (device_flat)
+                </button>
+            </form>
+
+            <form method="get" class="d-inline">
+                <input type="hidden" name="report" value="counts">
+                <button type="submit"
+                        class="btn btn-zf-secondary {% if report == 'counts' %}active{% endif %}">
+                    Report 2: Geräteanzahl je Standort
+                </button>
+            </form>
+        </div>
+
+        {% if not report %}
+            <div class="alert alert-info">
+                Bitte einen Report auswählen.
+            </div>
+        {% else %}
+
+            {% if rows and columns %}
+                <h5 class="mb-3">
+                    {% if report == "devices" %}
+                        Ergebnis: Geräteliste (Fake CSV aus <code>device_flat</code>)
+                    {% elif report == "counts" %}
+                        Ergebnis: Geräteanzahl je Standort
+                    {% endif %}
+                    – {{ rows|length }} Zeilen
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                {% for col in columns %}
+                                    <th scope="col">{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="{{ columns|length }}">
+                                        Keine Daten für diesen Report.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    Für die aktuelle Konfiguration wurden keine Daten gefunden.
+                </div>
+            {% endif %}
+
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
