@@ -1,9 +1,222 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}WorkPlace Base Element | XXX{% endblock %}
+{% block title %}WorkPlace Device Analysis{% endblock %}
 
 {% block content %}
-<h1>
-    Template Analysis
-</h1>
+<section class="page-section" id="analysis">
+    <div class="container">
+        <h2 class="text-center text-uppercase text-secondary mb-4">Geräteanalyse</h2>
+
+        <!-- Filterleiste -->
+        <form method="get" class="mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <div class="form-check zf-checkbox">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="id_dach_only"
+                            name="dach_only"
+                            value="1"
+                            {% if filters.dach_only %}checked{% endif %}
+                        >
+                        <label class="form-check-label" for="id_dach_only">
+                            Nur DACH-Sites
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label" for="id_ci_status">CI-Status</label>
+                    <select class="form-select" id="id_ci_status" name="ci_status">
+                        <option value="">(alle)</option>
+                        {% for status in filter_options.ci_statuses %}
+                            <option value="{{ status }}" {% if filters.ci_status == status %}selected{% endif %}>
+                                {{ status }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label" for="id_tier3">Tier 3</label>
+                    <select class="form-select" id="id_tier3" name="tier3">
+                        <option value="">(alle)</option>
+                        {% for t3 in filter_options.tier3_values %}
+                            <option value="{{ t3 }}" {% if filters.tier3 == t3 %}selected{% endif %}>
+                                {{ t3 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3 text-md-end">
+                    <button type="button" class="btn btn-zf-secondary mb-2" id="toggleMoreFiltersBtn">
+                        Mehr Filter
+                    </button>
+                    <button type="submit" class="btn btn-zf-primary mb-2">
+                        Filter anwenden
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Mehr Filter (Freitext) -->
+            <div
+                id="moreFilters"
+                class="row g-2 mt-2 {% if filters.search %}d-flex{% else %}d-none{% endif %}"
+            >
+                <div class="col-md-6">
+                    <label class="form-label" for="id_search">
+                        Freitext (PL-Name, Kurzbeschreibung, Modell, Seriennummer)
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="id_search"
+                        name="search"
+                        value="{{ filters.search|default_if_none:'' }}"
+                    >
+                </div>
+            </div>
+        </form>
+
+        <!-- Summary + Button für "Grafik" -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>{{ rows|length }}</strong> Geräte gefunden.
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-zf-secondary" id="showChartBtn">
+                    Geräteanzahl pro Standort anzeigen
+                </button>
+            </div>
+        </div>
+
+        <!-- Einfaches Balken-Diagramm ohne Chart.js -->
+        <div id="chartContainer" class="mb-4" style="display: none;">
+            <h5>Geräteanzahl pro Standort</h5>
+            <div id="chartBars" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+
+        <!-- CSV-artige Tabelle -->
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        {% for col in columns %}
+                            <th scope="col">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ columns|length }}">Keine Daten für die gewählte Filterkombination.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Counts als JSON für JS -->
+        {{ counts_by_site|json_script:"counts-data" }}
+
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggleMoreFiltersBtn = document.getElementById('toggleMoreFiltersBtn');
+    const moreFilters = document.getElementById('moreFilters');
+
+    if (toggleMoreFiltersBtn && moreFilters) {
+        toggleMoreFiltersBtn.addEventListener('click', function () {
+            if (moreFilters.classList.contains('d-none')) {
+                moreFilters.classList.remove('d-none');
+                moreFilters.classList.add('d-flex');
+            } else {
+                moreFilters.classList.remove('d-flex');
+                moreFilters.classList.add('d-none');
+            }
+        });
+    }
+
+    const showChartBtn = document.getElementById('showChartBtn');
+    const chartContainer = document.getElementById('chartContainer');
+    const chartBars = document.getElementById('chartBars');
+
+    function renderChart() {
+        const scriptTag = document.getElementById('counts-data');
+        if (!scriptTag) {
+            return;
+        }
+
+        let data;
+        try {
+            data = JSON.parse(scriptTag.textContent);
+        } catch (e) {
+            console.error('Fehler beim Parsen der Count-Daten', e);
+            return;
+        }
+
+        chartBars.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+            chartBars.innerHTML = '<p>Keine Daten für die aktuelle Auswahl.</p>';
+            return;
+        }
+
+        const maxCount = Math.max.apply(null, data.map(function (item) { return item.count; }));
+
+        data.forEach(function (item) {
+            const row = document.createElement('div');
+            row.className = 'd-flex align-items-center mb-1';
+
+            const label = document.createElement('div');
+            label.style.width = '70px';
+            label.textContent = item.site;
+
+            const barWrapper = document.createElement('div');
+            barWrapper.className = 'flex-grow-1 mx-2';
+
+            const bar = document.createElement('div');
+            const widthPercent = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+            bar.style.width = widthPercent + '%';
+            bar.style.height = '18px';
+            bar.style.backgroundColor = '#0071b9';
+            bar.className = 'rounded';
+
+            const value = document.createElement('div');
+            value.style.width = '40px';
+            value.textContent = item.count;
+
+            barWrapper.appendChild(bar);
+            row.appendChild(label);
+            row.appendChild(barWrapper);
+            row.appendChild(value);
+            chartBars.appendChild(row);
+        });
+    }
+
+    if (showChartBtn && chartContainer && chartBars) {
+        let chartVisible = false;
+
+        showChartBtn.addEventListener('click', function () {
+            chartVisible = !chartVisible;
+            chartContainer.style.display = chartVisible ? 'block' : 'none';
+            if (chartVisible) {
+                renderChart();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

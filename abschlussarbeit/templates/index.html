@@ -1,39 +1,48 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block title %}WorkPlace Base Element{% endblock %}
 
 {% block content %}
-<header class="masthead zf-bg-tertiary text-white text-center">
+
+<header class="masthead text-white text-center zf-bg-tertiary">
     <div class="container d-flex align-items-center flex-column">
-        <!-- Masthead Avatar Image-->
         <img class="masthead-avatar mb-5" src="{% static 'img/ZF_LOGOwhitepng.svg' %}" alt="ZF Logo" />
-        <!-- Masthead Heading-->
-        <h1 class="masthead-heading text-uppercase mb-0">FIIB21 WorkPlace Base Element Tool</h1>
+        <h1 class="masthead-heading text-uppercase mb-0">
+            FIIB21 WorkPlace Baseelement Tool
+        </h1>
+    </div>
 </header>
 
 <div class="container mt-5 mb-5">
-    {% if user.is_authenticated %}
-        <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="mb-3">
-                <input type="file"
-                       name="csv_file"
-                       accept=".csv"
-                       class="form-control">
+    <h2 class="mb-3">Bitte lade die aktuelle CSV Datei hoch</h2>
+
+    <form method="post" action="{% url 'upload_csv' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="id_csv_file" class="form-label">CSV-Datei auswählen</label>
+            <!-- ganz normales File-Input, unabhängig von Django-Form-Widgets -->
+            <input
+                type="file"
+                id="id_csv_file"
+                name="csv_file"
+                class="form-control"
+                accept=".csv"
+            >
+        </div>
+
+        {# Falls du noch Fehlermeldungen aus dem Django-Form zeigen willst #}
+        {% if upload_form and upload_form.errors %}
+            <div class="text-danger mt-2">
+                {{ upload_form.errors }}
             </div>
-            <button type="submit" class="btn btn-primary">
-                CSV hochladen
-            </button>
-        </form>
-    {% else %}
-        <h2 class="mb-3">Bitte loggen Sie sich ein</h2>
-        <a href="{% url 'login' %}" class="btn btn-primary">
-            Zum Login
-        </a>
-    {% endif %}
+        {% endif %}
+
+        <button type="submit" class="btn btn-zf-primary mt-3">
+            CSV hochladen
+        </button>
+    </form>
 </div>
 
 {% endblock %}
