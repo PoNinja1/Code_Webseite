@@ -330,7 +330,7 @@ def populate_normalized_from_staging():
                 WHERE t.MODEL IS NOT NULL AND t.MODEL <> '';
             """)
 
-            # Devices (Model -> Partnumber kommt über models.partnumber_id)
+                       # Devices: genau 1 Device pro Zeile in WKPBE_Test_kurz
             cur.execute("""
                 INSERT INTO devices (
                   serialnumber, shortdescription, destination_classid,
@@ -363,47 +363,106 @@ def populate_normalized_from_staging():
                   t.BUILDNUMBER,
                   t.ADDITIONAL_INFORMATION,
                   t.SUPPORTED,
-                  pn.pl_name_id,
-                  ob.owner_id,
-                  sb.supporter_id,
-                  ub.user_id,
-                  m.model_id,
-                  cc.cc_id,
-                  sup.supplier_id,
-                  r.room_id,
-                  rel.relation_id,
-                  dept.department_id,
-                  ty.type_id,
-                  dp.depot_id,
-                  pls.pl_status_id,
-                  cis.ci_status_id
-                FROM WKPBE_Test_kurz t
-                LEFT JOIN pl_names       pn   ON pn.pl_name        = t.PL_NAME
-                LEFT JOIN owned_bys      ob   ON ob.owned_by       = t.OWNED_BY
-                LEFT JOIN supported_bys  sb   ON sb.supported_by   = t.SUPPORTED_BY
-                LEFT JOIN used_bys       ub   ON ub.used_by        = t.USED_BY
-                LEFT JOIN cost_centers   cc   ON cc.pl_cost_center = t.PL_COST_CENTER
-                LEFT JOIN suppliers      sup  ON sup.suppliername  = t.SUPPLIERNAME
-                LEFT JOIN departments    dept ON dept.department   = t.DEPARTMENT
-                LEFT JOIN relations      rel  ON rel.relation      = t.RELATION
-                LEFT JOIN types          ty   ON ty.type           = t.TYPE
-                LEFT JOIN depots         dp   ON dp.depot          = t.DEPOT
-                LEFT JOIN tblpl_status   pls  ON pls.pl_status     = t.PL_STATUS
-                LEFT JOIN tblci_status   cis  ON cis.ci_status     = t.CI_STATUS
-                LEFT JOIN manufacturers  man  ON man.manufacturername = t.MANUFACTURERNAME
-                LEFT JOIN tbltier1       t1   ON t1.tier1          = t.TIER1
-                LEFT JOIN tbltier2       t2   ON t2.tier2          = t.TIER2
-                LEFT JOIN tbltier3       t3   ON t3.tier3          = t.TIER3
-                LEFT JOIN models         m    ON m.model           = t.MODEL
-                                               AND m.manu_id       = man.manu_id
-                                               AND m.tier1_id      = t1.tier1_id
-                                               AND m.tier2_id      = t2.tier2_id
-                                               AND m.tier3_id      = t3.tier3_id
-                LEFT JOIN sites          s    ON s.site = t.SITE
-                LEFT JOIN rooms          r    ON r.site_id = s.site_id
-                               AND IFNULL(r.room, '')    = IFNULL(t.ROOM, '')
-                               AND IFNULL(r.ci_room, '') = IFNULL(t.CI_ROOM, '');
+
+                  -- FK: pl_names
+                  (SELECT pn.pl_name_id
+                     FROM pl_names pn
+                    WHERE pn.pl_name = t.PL_NAME
+                    LIMIT 1),
+
+                  -- FK: owned_bys
+                  (SELECT ob.owner_id
+                     FROM owned_bys ob
+                    WHERE ob.owned_by = t.OWNED_BY
+                    LIMIT 1),
+
+                  -- FK: supported_bys
+                  (SELECT sb.supporter_id
+                     FROM supported_bys sb
+                    WHERE sb.supported_by = t.SUPPORTED_BY
+                    LIMIT 1),
+
+                  -- FK: used_bys
+                  (SELECT ub.user_id
+                     FROM used_bys ub
+                    WHERE ub.used_by = t.USED_BY
+                    LIMIT 1),
+
+                  -- FK: models (inkl. Hersteller + Tiers)
+                  (SELECT m.model_id
+                     FROM models m
+                     LEFT JOIN manufacturers man ON man.manu_id  = m.manu_id
+                     LEFT JOIN tbltier1       t1  ON t1.tier1_id = m.tier1_id
+                     LEFT JOIN tbltier2       t2  ON t2.tier2_id = m.tier2_id
+                     LEFT JOIN tbltier3       t3  ON t3.tier3_id = m.tier3_id
+                    WHERE m.model = t.MODEL
+                      AND (t.MANUFACTURERNAME IS NULL OR man.manufacturername = t.MANUFACTURERNAME)
+                      AND (t.TIER1 IS NULL OR t1.tier1 = t.TIER1)
+                      AND (t.TIER2 IS NULL OR t2.tier2 = t.TIER2)
+                      AND (t.TIER3 IS NULL OR t3.tier3 = t.TIER3)
+                    LIMIT 1),
+
+                  -- FK: cost_centers
+                  (SELECT cc.cc_id
+                     FROM cost_centers cc
+                    WHERE cc.pl_cost_center = t.PL_COST_CENTER
+                    LIMIT 1),
+
+                  -- FK: suppliers
+                  (SELECT sup.supplier_id
+                     FROM suppliers sup
+                    WHERE sup.suppliername = t.SUPPLIERNAME
+                    LIMIT 1),
+
+                  -- FK: rooms (über SITE + ROOM/CI_ROOM)
+                  (SELECT r.room_id
+                     FROM rooms r
+                     JOIN sites s ON s.site_id = r.site_id
+                    WHERE s.site = t.SITE
+                      AND IFNULL(r.room, '')    = IFNULL(t.ROOM, '')
+                      AND IFNULL(r.ci_room, '') = IFNULL(t.CI_ROOM, '')
+                    LIMIT 1),
+
+                  -- FK: relations
+                  (SELECT rel.relation_id
+                     FROM relations rel
+                    WHERE rel.relation = t.RELATION
+                    LIMIT 1),
+
+                  -- FK: departments
+                  (SELECT dept.department_id
+                     FROM departments dept
+                    WHERE dept.department = t.DEPARTMENT
+                    LIMIT 1),
+
+                  -- FK: types
+                  (SELECT ty.type_id
+                     FROM types ty
+                    WHERE ty.type = t.TYPE
+                    LIMIT 1),
+
+                  -- FK: depots
+                  (SELECT dp.depot_id
+                     FROM depots dp
+                    WHERE dp.depot = t.DEPOT
+                    LIMIT 1),
+
+                  -- FK: PL-Status
+                  (SELECT pls.pl_status_id
+                     FROM tblpl_status pls
+                    WHERE pls.pl_status = t.PL_STATUS
+                    LIMIT 1),
+
+                  -- FK: CI-Status
+                  (SELECT cis.ci_status_id
+                     FROM tblci_status cis
+                    WHERE cis.ci_status = t.CI_STATUS
+                    LIMIT 1)
+
+                FROM WKPBE_Test_kurz t;
             """)
+
+
 
 
 def recreate_device_flat_view():

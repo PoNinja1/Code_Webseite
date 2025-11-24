@@ -26,7 +26,7 @@
                 <input type="hidden" name="report" value="devices">
                 <button type="submit"
                         class="btn btn-zf-primary {% if report == 'devices' %}active{% endif %}">
-                    Report 1: Geräteliste (device_flat)
+                    Report 1: Geräteliste
                 </button>
             </form>
 
@@ -48,7 +48,7 @@
             {% if rows and columns %}
                 <h5 class="mb-3">
                     {% if report == "devices" %}
-                        Ergebnis: Geräteliste (Fake CSV aus <code>device_flat</code>)
+                        Ergebnis: Geräteliste
                     {% elif report == "counts" %}
                         Ergebnis: Geräteanzahl je Standort
                     {% endif %}
