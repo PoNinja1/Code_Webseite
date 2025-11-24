@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-mzq_z)ruvt)8^8rv3lb&z8#dcp0ju4owqw6api2u(%5@jd3&o0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -82,27 +82,27 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     },
 
-    'device_db': {   # neue MariaDB-Verbindung
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'device_overview',
-        'USER': 'devapp',
-        'PASSWORD': 'admin',
-        'HOST': '10.206.170.92',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+    #'device_db': {   # neue MariaDB-Verbindung
+        #'ENGINE': 'django.db.backends.mysql',
+        #'NAME': 'device_overview',
+        #'USER': 'devapp',
+        #'PASSWORD': 'admin',
+        #'HOST': '10.206.170.92',
+        #'PORT': '3306',
+        #'OPTIONS': {
+        #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        #},
         
-        # 'device_db': {   # neue MariaDB-Verbindung
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'device_overview',
-        # 'USER': 'devapp',
-        # 'PASSWORD': 'admin',
-        # 'HOST': 'localhost',
-        # 'PORT': '3306',
-        # 'OPTIONS': {
-        #     'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        # },
+         'device_db': {   # neue MariaDB-Verbindung
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'device_overview',
+         'USER': 'devapp',
+         'PASSWORD': 'admin',
+         'HOST': 'localhost',
+         'PORT': '3306',
+         'OPTIONS': {
+             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+         },
     }
 }
 
