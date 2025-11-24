@@ -92,6 +92,17 @@ DATABASES = {
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
+        
+        # 'device_db': {   # neue MariaDB-Verbindung
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'device_overview',
+        # 'USER': 'devapp',
+        # 'PASSWORD': 'admin',
+        # 'HOST': 'localhost',
+        # 'PORT': '3306',
+        # 'OPTIONS': {
+        #     'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        # },
     }
 }
 
