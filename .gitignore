@@ -16,8 +16,6 @@ Projekt/
 *.pyc
 db.sqlite3
 media/
-staticfiles/
-static/
 local_settings.py
 
 # IDEs / Tools

@@ -1,0 +1,183 @@
+#main {
+  padding-top: 74px;
+}
+
+@media (min-width: 992px) {
+  #main {
+    padding-top: 104px;
+  }
+}
+
+.zf-bg-primary{
+    background-color: #DD0D29;
+}
+
+.zf-bg-secondary{
+    background-color: #004D7A;
+}
+
+.zf-bg-tertiary {
+    background-color: #81BCDF;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link {
+    border-bottom: 2px solid transparent;
+    transition: border-bottom .2s, color .2s;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link:hover {
+    color: #DD0D29;
+    border-color: #DD0D29;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link.active {
+    background: none;
+    color: white;
+    border-color: #DD0D29;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link.active:hover {
+    background: none;
+    color: #DD0D29;
+}
+
+/* Eigener roter Logout-Button */
+.nav-logout-btn {
+    background-color: #DD0D29 !important;
+    border-color: #DD0D29 !important;
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+}
+
+.nav-logout-btn:hover {
+    background-color: #b40a22 !important; /* etwas dunkler für Hover */
+    border-color: #b40a22 !important;
+}
+
+.masthead .masthead-avatar{
+    width: 300px;
+    height: 300px;
+}
+
+@media (min-width: 992px) {
+    .masthead {
+        padding-top: 6rem;
+        padding-bottom: 6rem;
+    }
+}
+.masthead {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+}
+
+/* .masthead {
+    background-image: url("../img/head-background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+} */
+
+
+/* ZF-Button-Styles */
+.btn-zf-primary {
+    background-color: #0071b9;
+    border-color: #0071b9;
+    color: #ffffff;
+}
+
+.btn-zf-primary:hover,
+.btn-zf-primary:focus {
+    background-color: #005a93;
+    border-color: #005a93;
+    color: #ffffff;
+}
+
+/* ZF SECONDARY BUTTON (HELLBLAU) */
+.btn-zf-secondary {
+    background-color: #00ABE7 !important;
+    border-color: #00ABE7 !important;
+    color: #ffffff !important;
+}
+
+.btn-zf-secondary:hover,
+.btn-zf-secondary:focus {
+    background-color: #0094c8 !important; /* etwas dunkler */
+    border-color: #0094c8 !important;
+    color: #ffffff !important;
+}
+
+
+.zf-checkbox {
+    --zf-primary: #00ABE7;
+}
+
+/* Grundstil */
+.zf-checkbox .form-check-input {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--zf-primary);
+    border-radius: 6px;
+    background-color: #ffffff;
+    cursor: pointer;
+
+    /* Bootstrap überschreiben */
+    background-image: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Hover */
+.zf-checkbox .form-check-input:hover {
+    box-shadow: 0 0 6px rgba(0,171,231,0.4);
+}
+
+/* Checked state */
+.zf-checkbox .form-check-input:checked {
+    background-color: var(--zf-primary) !important;
+    border-color: var(--zf-primary) !important;
+
+    /* Haken-Grafik ERZWINGEN */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8l3 3 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-size: 14px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+
+/* Fokus */
+.zf-checkbox .form-check-input:focus {
+    outline: none;
+    box-shadow: 0 0 6px rgba(0,171,231,0.5);
+}
+
+
+/* ZF Input Styles */
+.form-control,
+.form-select,
+input[type="file"] {
+    border: 2px solid #00ABE7 !important;
+    box-shadow: none !important;
+}
+
+/* Fokus (bei Klick) */
+.form-control:focus,
+.form-select:focus,
+input[type="file"]:focus {
+    border-color: #0094c8 !important;
+    box-shadow: 0 0 6px rgba(0, 148, 200, 0.4) !important;
+}
+
+/* File-Upload Button */
+input[type="file"]::-webkit-file-upload-button {
+    background-color: #00ABE7 !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #0094c8 !important;
+}
