@@ -8,7 +8,7 @@ from django.db import connections, transaction
 # Alias aus settings.DATABASES (zweite DB = MariaDB)
 DEVICE_ALIAS = "device_db"
 
-# Spalten der CSV und der Staging-Tabelle WKPBE_Test_kurz
+# Spalten der CSV und der Staging-Tabelle staging_devices
 CSV_COLUMNS = [
     "PL_NAME",
     "REGION",
@@ -93,7 +93,7 @@ def clear_all_tables():
     TRUNCATE TABLE depots;
     TRUNCATE TABLE tblpl_status;
     TRUNCATE TABLE tblci_status;
-    TRUNCATE TABLE WKPBE_Test_kurz;
+    TRUNCATE TABLE staging_devices;
     SET FOREIGN_KEY_CHECKS = 1;
     """
     with _conn().cursor() as cur:
@@ -105,10 +105,10 @@ def clear_all_tables():
 
 def import_csv_to_staging(csv_file):
     """
-    CSV (mit ';') in die Staging-Tabelle WKPBE_Test_kurz laden.
+    CSV (mit ';') in die Staging-Tabelle staging_devices laden.
 
     Voraussetzung:
-    - WKPBE_Test_kurz hat GENAU die Spalten aus CSV_COLUMNS.
+    - staging_devices hat GENAU die Spalten aus CSV_COLUMNS.
     """
     data = csv_file.read().decode("utf-8-sig")
     f = io.StringIO(data)
@@ -116,7 +116,7 @@ def import_csv_to_staging(csv_file):
     reader = csv.DictReader(f, delimiter=";")
 
     insert_sql = """
-        INSERT INTO WKPBE_Test_kurz (
+        INSERT INTO staging_devices (
             {cols}
         ) VALUES (
             {placeholders}
@@ -139,14 +139,14 @@ def import_csv_to_staging(csv_file):
         rows.append(values)
 
     with _conn().cursor() as cur:
-        cur.execute("TRUNCATE TABLE WKPBE_Test_kurz;")
+        cur.execute("TRUNCATE TABLE staging_devices;")
         if rows:
             cur.executemany(insert_sql, rows)
 
 
 def populate_normalized_from_staging():
     """
-    Füllt die normalisierte Struktur aus WKPBE_Test_kurz.
+    Füllt die normalisierte Struktur aus staging_devices.
     Variante mit 1:1 Model–Partnumber (models.partnumber_id als FK).
     """
     conn = _conn()
@@ -157,7 +157,7 @@ def populate_normalized_from_staging():
             cur.execute("""
                 INSERT INTO regions (region)
                 SELECT DISTINCT REGION
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE REGION IS NOT NULL AND REGION <> '';
             """)
 
@@ -169,7 +169,7 @@ def populate_normalized_from_staging():
                     t.SITEGROUP,
                     t.SITE,
                     r.region_id
-                FROM WKPBE_Test_kurz t
+                FROM staging_devices t
                 JOIN regions r ON r.region = t.REGION
                 WHERE t.SITE IS NOT NULL AND t.SITE <> '';
             """)
@@ -183,7 +183,7 @@ def populate_normalized_from_staging():
                     t.CI_ROOM,
                     t.FLOOR,
                     s.site_id
-                FROM WKPBE_Test_kurz t
+                FROM staging_devices t
                 JOIN sites s ON s.site = t.SITE
                 WHERE
                     (t.ROOM IS NOT NULL AND t.ROOM <> '')
@@ -194,112 +194,112 @@ def populate_normalized_from_staging():
             cur.execute("""
                 INSERT INTO pl_names (pl_name)
                 SELECT DISTINCT PL_NAME
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE PL_NAME IS NOT NULL AND PL_NAME <> '';
             """)
 
             cur.execute("""
                 INSERT INTO owned_bys (owned_by)
                 SELECT DISTINCT OWNED_BY
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE OWNED_BY IS NOT NULL AND OWNED_BY <> '';
             """)
 
             cur.execute("""
                 INSERT INTO used_bys (used_by)
                 SELECT DISTINCT USED_BY
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE USED_BY IS NOT NULL AND USED_BY <> '';
             """)
 
             cur.execute("""
                 INSERT INTO supported_bys (supported_by)
                 SELECT DISTINCT SUPPORTED_BY
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE SUPPORTED_BY IS NOT NULL AND SUPPORTED_BY <> '';
             """)
 
             cur.execute("""
                 INSERT INTO suppliers (suppliername)
                 SELECT DISTINCT SUPPLIERNAME
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE SUPPLIERNAME IS NOT NULL AND SUPPLIERNAME <> '';
             """)
 
             cur.execute("""
                 INSERT INTO departments (department)
                 SELECT DISTINCT DEPARTMENT
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE DEPARTMENT IS NOT NULL AND DEPARTMENT <> '';
             """)
 
             cur.execute("""
                 INSERT INTO cost_centers (pl_cost_center)
                 SELECT DISTINCT PL_COST_CENTER
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE PL_COST_CENTER IS NOT NULL AND PL_COST_CENTER <> '';
             """)
 
             cur.execute("""
                 INSERT INTO manufacturers (manufacturername)
                 SELECT DISTINCT MANUFACTURERNAME
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE MANUFACTURERNAME IS NOT NULL AND MANUFACTURERNAME <> '';
             """)
 
             cur.execute("""
                 INSERT INTO tbltier1 (tier1)
                 SELECT DISTINCT TIER1
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE TIER1 IS NOT NULL AND TIER1 <> '';
             """)
 
             cur.execute("""
                 INSERT INTO tbltier2 (tier2)
                 SELECT DISTINCT TIER2
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE TIER2 IS NOT NULL AND TIER2 <> '';
             """)
 
             cur.execute("""
                 INSERT INTO tbltier3 (tier3)
                 SELECT DISTINCT TIER3
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE TIER3 IS NOT NULL AND TIER3 <> '';
             """)
 
             cur.execute("""
                 INSERT INTO relations (relation)
                 SELECT DISTINCT RELATION
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE RELATION IS NOT NULL AND RELATION <> '';
             """)
 
             cur.execute("""
                 INSERT INTO types (type)
                 SELECT DISTINCT TYPE
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE TYPE IS NOT NULL AND TYPE <> '';
             """)
 
             cur.execute("""
                 INSERT INTO depots (depot)
                 SELECT DISTINCT DEPOT
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE DEPOT IS NOT NULL AND DEPOT <> '';
             """)
 
             cur.execute("""
                 INSERT INTO tblpl_status (pl_status)
                 SELECT DISTINCT PL_STATUS
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE PL_STATUS IS NOT NULL AND PL_STATUS <> '';
             """)
 
             cur.execute("""
                 INSERT INTO tblci_status (ci_status)
                 SELECT DISTINCT CI_STATUS
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE CI_STATUS IS NOT NULL AND CI_STATUS <> '';
             """)
 
@@ -307,7 +307,7 @@ def populate_normalized_from_staging():
             cur.execute("""
                 INSERT INTO partnumbers (partnumber)
                 SELECT DISTINCT PARTNUMBER
-                FROM WKPBE_Test_kurz
+                FROM staging_devices
                 WHERE PARTNUMBER IS NOT NULL AND PARTNUMBER <> '';
             """)
 
@@ -321,7 +321,7 @@ def populate_normalized_from_staging():
                     t3.tier3_id,
                     t.MODEL,
                     p.partnumber_id
-                FROM WKPBE_Test_kurz t
+                FROM staging_devices t
                 LEFT JOIN manufacturers man ON man.manufacturername = t.MANUFACTURERNAME
                 LEFT JOIN tbltier1       t1  ON t1.tier1 = t.TIER1
                 LEFT JOIN tbltier2       t2  ON t2.tier2 = t.TIER2
@@ -330,7 +330,7 @@ def populate_normalized_from_staging():
                 WHERE t.MODEL IS NOT NULL AND t.MODEL <> '';
             """)
 
-                       # Devices: genau 1 Device pro Zeile in WKPBE_Test_kurz
+                       # Devices: genau 1 Device pro Zeile in staging_devices
             cur.execute("""
                 INSERT INTO devices (
                   serialnumber, shortdescription, destination_classid,
@@ -459,7 +459,7 @@ def populate_normalized_from_staging():
                     WHERE cis.ci_status = t.CI_STATUS
                     LIMIT 1)
 
-                FROM WKPBE_Test_kurz t;
+                FROM staging_devices t;
             """)
 
 
